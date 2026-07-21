@@ -1,6 +1,6 @@
 ## Week 7 — Issue selection
 
-**Issue link:** [Issue 43] (https://github.com/ascherj/pathreview/issues/43)
+**Issue link:** [Issue 43](https://github.com/ascherj/pathreview/issues/43)
 
 **Issue title:** Agent session state is not cleared between reviews for the same user
 
@@ -17,6 +17,15 @@ The issue attributes tale results to `session_store` caching by user ID. Tracing
 The issue's root casue is misattributed; the fix cannot live purely in `session_store.py`. The genuine staleness risks live elsewhere (the constant `market_analyzer` input at orchestrator.py:130, and the accumulating merge at orchestrator.py:66).
 
 A successful fix ensures that when the same user requests a second review after changing their portfolio, the results reflect the new portfolio rather than any prior session. Concretely, cached state must be invalidated when the input changes either by keying session state to a portfolio content/version has (so a changed portfolio misses the cache) or by resetting the session (`session_store.delete`) at the start of each review. It must also remain safe for the intended case: an identical re-review may reuse the cache, and no orphaned per-tool entries from a previous review should linger in the merged state. 
+
+Scope fit:
+The bug fits my skills level based on a number of reasons. The main reason that I selected this one is that I was able to understand and provide the reasoning about what the bug was about without having to do research or too much consideration. This bug affects the part of the code for the memory storage. I have previous experience with session HTTP responses, so this felt it may use some of that knowledge. I am able to see that missing cleared cache and session data validation before the fix and can also identify that a fix will include a validation step that determines the need to call the tools or not. 
+
+Tier choice is realistic for me since this is my first open source contribution. 
+
+I was able to quickly find the affected file and jump to where `session_store` is called in other files, such as `orchestrator.py`. Reviewing the full picture of connection painted a clearer picture of what to address: the `ContextManager` in `orchestrator.py` may actually be causing the issue, not the `session_store.py` code as mentioned in the bug summary. I also reviewed the relevant test files but do not see a specific test for this bug. The test that will most closely support this bug is `test_review_service.py` because it creates and returns a session for review.
+
+I feel that my bug choice is inline with my abilities. I also have a good understanding of the number of hours that are required to resolve the bug. At this time, I do not see any blockers or dependencies that are in the way of resolving the bug.
 
 **Branch name:** fix/43-Agent-session-not-resetting
 
